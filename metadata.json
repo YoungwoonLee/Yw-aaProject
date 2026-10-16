@@ -1,0 +1,6 @@
+{
+  "name": "온닫이 (Ondaji)",
+  "description": "우리 동네의 모든 이야기를 담은 하이퍼로컬 모바일 아카이브 온닫이",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

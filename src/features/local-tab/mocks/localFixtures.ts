@@ -1,0 +1,1005 @@
+import { FeedDetailContent } from '../../../types/content';
+import {
+  AreaByCoordinatesResult,
+  asBeopjungdongCode,
+  BeopjungdongCode,
+  MyTownResult,
+  PartialMultiPolygonArea,
+  PointMyTownResult,
+  PolygonSearchItem,
+  RecentSearchKeywordItem,
+  RecentVisitTownItem,
+} from '../../../types/local';
+
+export interface RegionalFeedFixture extends FeedDetailContent {
+  latitude: number;
+  longitude: number;
+}
+
+/**
+ * 성남시 중원구 금광동(선택 1) + 주변 6개 법정동 다각형 데이터
+ * 폴리곤 문자열은 "[[[lng, lat], ...]]" JSON 배열 문자열 (경도, 위도 순서)
+ */
+export const SEONGNAM_PARTIAL_AREAS: PartialMultiPolygonArea[] = [
+  {
+    codeValue: asBeopjungdongCode('4113310300'),
+    townName: '경기도 성남시 중원구 금광동',
+    centerLatitude: 37.4465,
+    centerLongitude: 127.1678,
+    multipolygon: JSON.stringify([
+      [
+        [127.161, 37.442],
+        [127.174, 37.442],
+        [127.175, 37.451],
+        [127.161, 37.451],
+        [127.161, 37.442],
+      ],
+    ]),
+  },
+  {
+    codeValue: asBeopjungdongCode('4113110700'),
+    townName: '경기도 성남시 수정구 양지동',
+    centerLatitude: 37.4578,
+    centerLongitude: 127.1615,
+    multipolygon: JSON.stringify([
+      [
+        [127.154, 37.451],
+        [127.168, 37.451],
+        [127.168, 37.463],
+        [127.154, 37.463],
+        [127.154, 37.451],
+      ],
+    ]),
+  },
+  {
+    codeValue: asBeopjungdongCode('4113310400'),
+    townName: '경기도 성남시 중원구 은행동',
+    centerLatitude: 37.4572,
+    centerLongitude: 127.1765,
+    multipolygon: JSON.stringify([
+      [
+        [127.168, 37.451],
+        [127.185, 37.451],
+        [127.185, 37.463],
+        [127.168, 37.463],
+        [127.168, 37.451],
+      ],
+    ]),
+  },
+  {
+    codeValue: asBeopjungdongCode('4113110600'),
+    townName: '경기도 성남시 수정구 단대동',
+    centerLatitude: 37.4485,
+    centerLongitude: 127.1535,
+    multipolygon: JSON.stringify([
+      [
+        [127.146, 37.443],
+        [127.161, 37.443],
+        [127.161, 37.454],
+        [127.146, 37.454],
+        [127.146, 37.443],
+      ],
+    ]),
+  },
+  {
+    codeValue: asBeopjungdongCode('4113310200'),
+    townName: '경기도 성남시 중원구 중앙동',
+    centerLatitude: 37.4382,
+    centerLongitude: 127.1545,
+    multipolygon: JSON.stringify([
+      [
+        [127.146, 37.433],
+        [127.161, 37.433],
+        [127.161, 37.443],
+        [127.146, 37.443],
+        [127.146, 37.433],
+      ],
+    ]),
+  },
+  {
+    codeValue: asBeopjungdongCode('4113310600'),
+    townName: '경기도 성남시 중원구 상대원동',
+    centerLatitude: 37.4385,
+    centerLongitude: 127.1795,
+    multipolygon: JSON.stringify([
+      [
+        [127.174, 37.433],
+        [127.186, 37.433],
+        [127.186, 37.451],
+        [127.174, 37.451],
+        [127.174, 37.433],
+      ],
+    ]),
+  },
+  {
+    codeValue: asBeopjungdongCode('4113110100'),
+    townName: '경기도 성남시 수정구 신흥동',
+    centerLatitude: 37.4362,
+    centerLongitude: 127.1675,
+    multipolygon: JSON.stringify([
+      [
+        [127.161, 37.431],
+        [127.174, 37.431],
+        [127.174, 37.442],
+        [127.161, 37.442],
+        [127.161, 37.431],
+      ],
+    ]),
+  },
+];
+
+export const SEONGNAM_GLOBAL_MULTIPOLYGON = JSON.stringify([
+  [
+    [127.146, 37.431],
+    [127.186, 37.431],
+    [127.186, 37.463],
+    [127.154, 37.463],
+    [127.146, 37.454],
+    [127.146, 37.431],
+  ],
+]);
+
+export const SEONGNAM_AREA_BY_COORDINATES: AreaByCoordinatesResult = {
+  globalMultiPolygonArea: {
+    multipolygon: SEONGNAM_GLOBAL_MULTIPOLYGON,
+    maxLength: 4200,
+  },
+  partialMultiPolygonAreas: SEONGNAM_PARTIAL_AREAS,
+};
+
+/**
+ * 전국 주요 읍·면·동 검색용 목 데이터 (GET /api/area/polygon-search)
+ */
+export interface TownCatalogEntry {
+  codeValue: BeopjungdongCode;
+  areaName: string;
+  areaFullName: string;
+  centerLatitude: number;
+  centerLongitude: number;
+  hangjungdongName: string;
+  multiPolygonStr: string;
+}
+
+export const TOWN_CATALOG: TownCatalogEntry[] = [
+  ...SEONGNAM_PARTIAL_AREAS.map((area) => {
+    const parts = area.townName.split(' ');
+    const dongName = parts[parts.length - 1];
+    return {
+      codeValue: area.codeValue,
+      areaName: dongName,
+      areaFullName: area.townName,
+      centerLatitude: area.centerLatitude,
+      centerLongitude: area.centerLongitude,
+      hangjungdongName: dongName === '금광동' ? '금광2동' : `${dongName}1동`,
+      multiPolygonStr: area.multipolygon,
+    };
+  }),
+  {
+    codeValue: asBeopjungdongCode('4311110600'),
+    areaName: '남주동',
+    areaFullName: '충청북도 청주시 상당구 남주동',
+    centerLatitude: 36.6325,
+    centerLongitude: 127.4895,
+    hangjungdongName: '중앙동',
+    multiPolygonStr: JSON.stringify([
+      [
+        [127.483, 36.628],
+        [127.496, 36.628],
+        [127.496, 36.637],
+        [127.483, 36.637],
+        [127.483, 36.628],
+      ],
+    ]),
+  },
+  {
+    codeValue: asBeopjungdongCode('1168010500'),
+    areaName: '삼성동',
+    areaFullName: '서울특별시 강남구 삼성동',
+    centerLatitude: 37.5145,
+    centerLongitude: 127.0565,
+    hangjungdongName: '삼성1동',
+    multiPolygonStr: JSON.stringify([
+      [
+        [127.049, 37.509],
+        [127.064, 37.509],
+        [127.064, 37.52],
+        [127.049, 37.52],
+        [127.049, 37.509],
+      ],
+    ]),
+  },
+  {
+    codeValue: asBeopjungdongCode('4128112300'),
+    areaName: '삼성동',
+    areaFullName: '경기도 고양시 덕양구 삼성동',
+    centerLatitude: 37.652,
+    centerLongitude: 126.892,
+    hangjungdongName: '흥도동',
+    multiPolygonStr: JSON.stringify([
+      [
+        [126.885, 37.647],
+        [126.899, 37.647],
+        [126.899, 37.657],
+        [126.885, 37.657],
+        [126.885, 37.647],
+      ],
+    ]),
+  },
+  {
+    codeValue: asBeopjungdongCode('1132010800'),
+    areaName: '도봉동',
+    areaFullName: '서울특별시 도봉구 도봉동',
+    centerLatitude: 37.6795,
+    centerLongitude: 127.0425,
+    hangjungdongName: '도봉1동',
+    multiPolygonStr: JSON.stringify([
+      [
+        [127.035, 37.674],
+        [127.05, 37.674],
+        [127.05, 37.685],
+        [127.035, 37.685],
+        [127.035, 37.674],
+      ],
+    ]),
+  },
+  {
+    codeValue: asBeopjungdongCode('1132010600'),
+    areaName: '방학동',
+    areaFullName: '서울특별시 도봉구 방학동',
+    centerLatitude: 37.6655,
+    centerLongitude: 127.0355,
+    hangjungdongName: '방학1동',
+    multiPolygonStr: JSON.stringify([
+      [
+        [127.028, 37.66],
+        [127.043, 37.66],
+        [127.043, 37.671],
+        [127.028, 37.671],
+        [127.028, 37.66],
+      ],
+    ]),
+  },
+  {
+    codeValue: asBeopjungdongCode('4113510300'),
+    areaName: '정자동',
+    areaFullName: '경기도 성남시 분당구 정자동',
+    centerLatitude: 37.3665,
+    centerLongitude: 127.1125,
+    hangjungdongName: '정자1동',
+    multiPolygonStr: JSON.stringify([
+      [
+        [127.105, 37.361],
+        [127.12, 37.361],
+        [127.12, 37.372],
+        [127.105, 37.372],
+        [127.105, 37.361],
+      ],
+    ]),
+  },
+];
+
+/**
+ * 초기 최근 설정된 동네 목록 (GET /api/localbox/recent-visit-town)
+ */
+export const INITIAL_RECENT_VISIT_TOWNS: RecentVisitTownItem[] = [
+  {
+    visitTownId: 501,
+    visitTownName: '충청북도 청주시 상당구 남주동',
+    visitTownLatitude: 36.6325,
+    visitTownLongitude: 127.4895,
+    codeValue: asBeopjungdongCode('4311110600'),
+  },
+  {
+    visitTownId: 502,
+    visitTownName: '경기도 성남시 중원구 은행동',
+    visitTownLatitude: 37.4572,
+    visitTownLongitude: 127.1765,
+    codeValue: asBeopjungdongCode('4113310400'),
+  },
+  {
+    visitTownId: 503,
+    visitTownName: '서울특별시 강남구 삼성동',
+    visitTownLatitude: 37.5145,
+    visitTownLongitude: 127.0565,
+    codeValue: asBeopjungdongCode('1168010500'),
+  },
+];
+
+/**
+ * 최근 검색어 목 데이터 (GET /api/area/polygon-search/recent-search-keyword)
+ * TODO(확인필요): 실제 응답 형태 확인 필요
+ */
+export const INITIAL_RECENT_SEARCH_KEYWORDS: RecentSearchKeywordItem[] = [
+  { keywordId: 1, keyword: '금광동' },
+  { keywordId: 2, keyword: '은행동' },
+  { keywordId: 3, keyword: '삼성' },
+  { keywordId: 4, keyword: '남주동' },
+];
+
+/**
+ * 로컬탭 전용 가상 피드 게시글 (16건: 12건 첫 페이지 + 4건 다음 페이지 무한 스크롤 검증용)
+ * 실제 회원 글을 쓰지 않고 성남시 중원구 금광동 및 주변 6개 동네 중심의 가상 글로 구성
+ */
+export const MOCK_REGIONAL_FEEDS: RegionalFeedFixture[] = [
+  {
+    contentId: 7625,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '금광동 신구대 식물원 앞 가을 산책로 단풍 소식',
+    contentBodyText:
+      '금광동에서 은행동으로 이어지는 산책로에 단풍이 곱게 물들었습니다. 아침 공기가 상쾌해서 동네 주민분들 산책 코스로 추천드려요.',
+    contentLikeCount: 24,
+    contentReplyCount: 6,
+    contentLikeYn: true,
+    contentBookmarkYn: false,
+    viewCount: 215,
+    regDt: new Date(Date.now() - 1 * 86400 * 1000).toISOString(),
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 중원구',
+    contentDisplayRateDongName: '금광동',
+    contentDisplayRateDongs: [
+      { dongName: '금광동', percentage: 50 },
+      { dongName: '상대원동', percentage: 29 },
+      { dongName: '은행동', percentage: 20 },
+      { dongName: '단대동', percentage: 1 },
+    ],
+    latitude: 37.4468,
+    longitude: 127.1682,
+    address: '경기도 성남시 중원구 금광동 산책길 12',
+    contentHashTagElementDtos: [
+      { contentHashTagId: 301, hashTagId: 301, tagName: '금광동산책', orderNum: 1 },
+      { contentHashTagId: 302, hashTagId: 302, tagName: '우리동네가을', orderNum: 2 },
+    ],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/1018/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+      {
+        contentFileUrl: 'https://picsum.photos/id/1015/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 2,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 101,
+      localboxName: '금광동 마을기록가',
+      localboxProfileImgUrl: 'https://picsum.photos/id/64/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '금광동',
+      localboxMyTownCodeValue: '4113310300',
+      localboxCreatorType: 'LOCALBOX_LOCAL_MEDIA',
+    },
+  },
+  {
+    contentId: 7624,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '금광시장 골목 갓 구운 옛날 두부과자 향기',
+    contentBodyText:
+      '금광시장 입구 방앗간 옆에서 매일 오후 2시면 고소한 두부과자를 구우시네요. 지나가다 한 봉지 사면 순식간에 사라집니다.',
+    contentLikeCount: 19,
+    contentReplyCount: 4,
+    contentLikeYn: false,
+    contentBookmarkYn: false,
+    viewCount: 178,
+    regDt: new Date(Date.now() - 2 * 86400 * 1000).toISOString(),
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 중원구',
+    contentDisplayRateDongName: '금광동',
+    contentDisplayRateDongs: [
+      { dongName: '금광동', percentage: 62 },
+      { dongName: '단대동', percentage: 23 },
+      { dongName: '중앙동', percentage: 15 },
+    ],
+    latitude: 37.4455,
+    longitude: 127.1665,
+    address: '경기도 성남시 중원구 금광동 42',
+    contentHashTagElementDtos: [
+      { contentHashTagId: 303, hashTagId: 303, tagName: '금광시장', orderNum: 1 },
+    ],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/1080/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 102,
+      localboxName: '중원구 골목탐방',
+      localboxProfileImgUrl: 'https://picsum.photos/id/338/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '금광동',
+      localboxMyTownCodeValue: '4113310300',
+      localboxCreatorType: 'LOCALBOX_RESIDENT',
+    },
+  },
+  {
+    contentId: 7623,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '검단산 자락 은행동 약수터 아침 풍경 [동영상]',
+    contentBodyText:
+      '이른 아침 은행동 약수터 올라가는 숲길에서 담은 새소리와 맑은 물소리입니다. 상쾌한 기운 받아가세요!',
+    contentLikeCount: 33,
+    contentReplyCount: 8,
+    contentLikeYn: true,
+    contentBookmarkYn: true,
+    viewCount: 310,
+    regDt: new Date(Date.now() - 3 * 86400 * 1000).toISOString(),
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 중원구',
+    contentDisplayRateDongName: '은행동',
+    contentDisplayRateDongs: [
+      { dongName: '은행동', percentage: 48 },
+      { dongName: '금광동', percentage: 34 },
+      { dongName: '양지동', percentage: 18 },
+    ],
+    latitude: 37.4545,
+    longitude: 127.1735,
+    address: '경기도 성남시 중원구 은행동 산 15',
+    contentHashTagElementDtos: [
+      { contentHashTagId: 304, hashTagId: 304, tagName: '은행동약수터', orderNum: 1 },
+    ],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+        encodedFileUrl: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+        thumbnailFileUrl: 'https://picsum.photos/id/1043/800/600',
+        contentFileType: 'VIDEO_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 103,
+      localboxName: '은행동 숲길지기',
+      localboxProfileImgUrl: 'https://picsum.photos/id/1025/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '은행동',
+      localboxMyTownCodeValue: '4113310400',
+      localboxCreatorType: 'LOCALBOX_RESIDENT',
+    },
+  },
+  {
+    contentId: 7622,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '단대공원 도서관 주말 어린이 독서교실 안내',
+    contentBodyText:
+      '이번 주 토요일 단대공원 내 작은도서관에서 가을 그림책 함께 읽기 모임이 열립니다. 단대동, 금광동 주민 누구나 환영합니다.',
+    contentLikeCount: 15,
+    contentReplyCount: 3,
+    contentLikeYn: false,
+    contentBookmarkYn: false,
+    viewCount: 142,
+    regDt: new Date(Date.now() - 4 * 86400 * 1000).toISOString(),
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 수정구',
+    contentDisplayRateDongName: '단대동',
+    contentDisplayRateDongs: [
+      { dongName: '단대동', percentage: 52 },
+      { dongName: '금광동', percentage: 31 },
+      { dongName: '양지동', percentage: 17 },
+    ],
+    latitude: 37.4488,
+    longitude: 127.1552,
+    address: '경기도 성남시 수정구 단대동 88',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/24/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 104,
+      localboxName: '단대동 책방지기',
+      localboxProfileImgUrl: 'https://picsum.photos/id/1062/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '단대동',
+      localboxMyTownCodeValue: '4113110600',
+      localboxCreatorType: 'LOCALBOX_COMMUNITY',
+    },
+  },
+  {
+    contentId: 7621,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '상대원동 황송공원 잔디광장 버스킹 공연 후기',
+    contentBodyText:
+      '해 질 무렵 황송공원 잔디밭에서 열린 통기타 공연에 많은 가족분들이 돗자리를 펴고 함께하셨습니다.',
+    contentLikeCount: 41,
+    contentReplyCount: 9,
+    contentLikeYn: true,
+    contentBookmarkYn: false,
+    viewCount: 380,
+    regDt: new Date(Date.now() - 5 * 86400 * 1000).toISOString(),
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 중원구',
+    contentDisplayRateDongName: '상대원동',
+    contentDisplayRateDongs: [
+      { dongName: '상대원동', percentage: 55 },
+      { dongName: '금광동', percentage: 28 },
+      { dongName: '중앙동', percentage: 17 },
+    ],
+    latitude: 37.4392,
+    longitude: 127.1778,
+    address: '경기도 성남시 중원구 상대원동 황송공원',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/145/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 105,
+      localboxName: '상대원 문화소식',
+      localboxProfileImgUrl: 'https://picsum.photos/id/1027/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '상대원동',
+      localboxMyTownCodeValue: '4113310600',
+      localboxCreatorType: 'LOCALBOX_LOCAL_MEDIA',
+    },
+  },
+  {
+    contentId: 7620,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '양지동 양지공원 배드민턴장 야간 조명 정비 완료',
+    contentBodyText:
+      '저녁 운동하시는 주민분들을 위해 양지공원 코트 LED 조명이 한층 밝고 눈부심 없는 조명으로 교체되었습니다.',
+    contentLikeCount: 18,
+    contentReplyCount: 2,
+    contentLikeYn: false,
+    contentBookmarkYn: false,
+    viewCount: 165,
+    regDt: new Date(Date.now() - 6 * 86400 * 1000).toISOString(),
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 수정구',
+    contentDisplayRateDongName: '양지동',
+    contentDisplayRateDongs: [
+      { dongName: '양지동', percentage: 58 },
+      { dongName: '단대동', percentage: 22 },
+      { dongName: '금광동', percentage: 20 },
+    ],
+    latitude: 37.4575,
+    longitude: 127.162,
+    address: '경기도 성남시 수정구 양지동 110',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [],
+    localboxElementDto: {
+      localboxId: 106,
+      localboxName: '양지동 생활체육',
+      localboxProfileImgUrl: null,
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '양지동',
+      localboxMyTownCodeValue: '4113110700',
+      localboxCreatorType: 'LOCALBOX_RESIDENT',
+    },
+  },
+  {
+    contentId: 7619,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '중앙동 성남종합운동장 트랙 야간 러닝 모임',
+    contentBodyText:
+      '매주 수요일 저녁 8시 트랙에서 가볍게 5km 달리는 이웃 러닝 크루입니다. 초보자도 천천히 함께 뛰어요!',
+    contentLikeCount: 29,
+    contentReplyCount: 7,
+    contentLikeYn: false,
+    contentBookmarkYn: true,
+    viewCount: 254,
+    regDt: new Date(Date.now() - 7 * 86400 * 1000).toISOString(),
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 중원구',
+    contentDisplayRateDongName: '중앙동',
+    contentDisplayRateDongs: [
+      { dongName: '중앙동', percentage: 49 },
+      { dongName: '금광동', percentage: 31 },
+      { dongName: '신흥동', percentage: 20 },
+    ],
+    latitude: 37.4385,
+    longitude: 127.155,
+    address: '경기도 성남시 중원구 중앙동 55',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/318/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 107,
+      localboxName: '중원 나이트러너',
+      localboxProfileImgUrl: 'https://picsum.photos/id/342/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '중앙동',
+      localboxMyTownCodeValue: '4113310200',
+      localboxCreatorType: 'LOCALBOX_RESIDENT',
+    },
+  },
+  {
+    contentId: 7618,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '신흥동 종합시장 수제 어묵탕 골목 맛집 탐방',
+    contentBodyText:
+      '날이 선선해지니 신흥동 골목의 따끈한 수제 어묵 국물이 생각나네요. 20년 넘게 자리를 지킨 노포 이야기입니다.',
+    contentLikeCount: 37,
+    contentReplyCount: 5,
+    contentLikeYn: false,
+    contentBookmarkYn: false,
+    viewCount: 290,
+    regDt: '2026-09-28 14:20:00',
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 수정구',
+    contentDisplayRateDongName: '신흥동',
+    contentDisplayRateDongs: [
+      { dongName: '신흥동', percentage: 54 },
+      { dongName: '중앙동', percentage: 26 },
+      { dongName: '금광동', percentage: 20 },
+    ],
+    latitude: 37.4365,
+    longitude: 127.167,
+    address: '경기도 성남시 수정구 신흥동 201',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/225/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 108,
+      localboxName: '수정구 미식수첩',
+      localboxProfileImgUrl: 'https://picsum.photos/id/201/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '신흥동',
+      localboxMyTownCodeValue: '4113110100',
+      localboxCreatorType: 'LOCALBOX_SHOP',
+    },
+  },
+  {
+    contentId: 7617,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '금광동 청소년수련관 앞 플리마켓 셀러 모집 소식',
+    contentBodyText:
+      '직접 만든 수공예품과 중고 물품을 나누는 금광동 토요 나눔장터가 열립니다.',
+    contentLikeCount: 22,
+    contentReplyCount: 4,
+    contentLikeYn: false,
+    contentBookmarkYn: false,
+    viewCount: 198,
+    regDt: '2026-09-24 11:00:00',
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 중원구',
+    contentDisplayRateDongName: '금광동',
+    contentDisplayRateDongs: [
+      { dongName: '금광동', percentage: 60 },
+      { dongName: '은행동', percentage: 25 },
+      { dongName: '상대원동', percentage: 15 },
+    ],
+    latitude: 37.4472,
+    longitude: 127.169,
+    address: '경기도 성남시 중원구 금광동 105',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/250/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 101,
+      localboxName: '금광동 마을기록가',
+      localboxProfileImgUrl: 'https://picsum.photos/id/64/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '금광동',
+      localboxMyTownCodeValue: '4113310300',
+      localboxCreatorType: 'LOCALBOX_LOCAL_MEDIA',
+    },
+  },
+  {
+    contentId: 7616,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '은행동 식물원 앞 로컬 로스터리 카페 신메뉴 소개',
+    contentBodyText:
+      '가을 햇밤을 활용한 보늬밤 라떼를 시작했습니다. 산책길에 따뜻한 커피 한 잔 하러 들러주세요.',
+    contentLikeCount: 31,
+    contentReplyCount: 6,
+    contentLikeYn: true,
+    contentBookmarkYn: false,
+    viewCount: 245,
+    regDt: '2026-09-20 15:30:00',
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 중원구',
+    contentDisplayRateDongName: '은행동',
+    contentDisplayRateDongs: [
+      { dongName: '은행동', percentage: 52 },
+      { dongName: '금광동', percentage: 33 },
+      { dongName: '상대원동', percentage: 15 },
+    ],
+    latitude: 37.456,
+    longitude: 127.175,
+    address: '경기도 성남시 중원구 은행동 77',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/1060/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 109,
+      localboxName: '은행동 커피공방',
+      localboxProfileImgUrl: 'https://picsum.photos/id/338/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '은행동',
+      localboxMyTownCodeValue: '4113310400',
+      localboxCreatorType: 'LOCALBOX_SHOP',
+    },
+  },
+  {
+    contentId: 7615,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '단대동 논골 마을 벽화거리 새로 단장했어요',
+    contentBodyText:
+      '주민들과 미술 전공 대학생들이 함께 그린 따뜻한 골목 벽화가 완성되었습니다.',
+    contentLikeCount: 44,
+    contentReplyCount: 10,
+    contentLikeYn: false,
+    contentBookmarkYn: false,
+    viewCount: 330,
+    regDt: '2026-09-18 09:40:00',
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 수정구',
+    contentDisplayRateDongName: '단대동',
+    contentDisplayRateDongs: [
+      { dongName: '단대동', percentage: 47 },
+      { dongName: '금광동', percentage: 35 },
+      { dongName: '중앙동', percentage: 18 },
+    ],
+    latitude: 37.4492,
+    longitude: 127.154,
+    address: '경기도 성남시 수정구 단대동 논골로 21',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/164/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 104,
+      localboxName: '단대동 책방지기',
+      localboxProfileImgUrl: 'https://picsum.photos/id/1062/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '단대동',
+      localboxMyTownCodeValue: '4113110600',
+      localboxCreatorType: 'LOCALBOX_COMMUNITY',
+    },
+  },
+  {
+    contentId: 7614,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '금광동 래미안 앞 화단에 핀 가을 코스모스 길',
+    contentBodyText:
+      '아파트 단지 옆 산책로에 코스모스가 한가득 피어 바람에 살랑입니다.',
+    contentLikeCount: 27,
+    contentReplyCount: 5,
+    contentLikeYn: false,
+    contentBookmarkYn: false,
+    viewCount: 210,
+    regDt: '2026-09-15 17:10:00',
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 중원구',
+    contentDisplayRateDongName: '금광동',
+    contentDisplayRateDongs: [
+      { dongName: '금광동', percentage: 55 },
+      { dongName: '상대원동', percentage: 25 },
+      { dongName: '은행동', percentage: 20 },
+    ],
+    latitude: 37.446,
+    longitude: 127.1695,
+    address: '경기도 성남시 중원구 금광동 312',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/214/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 101,
+      localboxName: '금광동 마을기록가',
+      localboxProfileImgUrl: 'https://picsum.photos/id/64/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '금광동',
+      localboxMyTownCodeValue: '4113310300',
+      localboxCreatorType: 'LOCALBOX_LOCAL_MEDIA',
+    },
+  },
+  {
+    contentId: 7613,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '상대원 시장 떡집의 갓 찐 호박시루떡 나눔 후기',
+    contentBodyText:
+      '상대원 시장 골목 떡집 사장님께서 동네 경로당에 따뜻한 호박시루떡을 돌리셨다는 훈훈한 소식입니다.',
+    contentLikeCount: 53,
+    contentReplyCount: 11,
+    contentLikeYn: true,
+    contentBookmarkYn: false,
+    viewCount: 405,
+    regDt: '2026-09-12 10:20:00',
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 중원구',
+    contentDisplayRateDongName: '상대원동',
+    contentDisplayRateDongs: [
+      { dongName: '상대원동', percentage: 60 },
+      { dongName: '금광동', percentage: 25 },
+      { dongName: '은행동', percentage: 15 },
+    ],
+    latitude: 37.4375,
+    longitude: 127.181,
+    address: '경기도 성남시 중원구 상대원동 190',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [],
+    localboxElementDto: {
+      localboxId: 105,
+      localboxName: '상대원 문화소식',
+      localboxProfileImgUrl: 'https://picsum.photos/id/1027/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '상대원동',
+      localboxMyTownCodeValue: '4113310600',
+      localboxCreatorType: 'LOCALBOX_LOCAL_MEDIA',
+    },
+  },
+  {
+    contentId: 7612,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '중앙동 주민센터 옥상 정원 국화 전시회 오픈',
+    contentBodyText:
+      '주민들이 직접 가꾼 국화 화분 100여 점이 중앙동 옥상 정원에 전시되어 있습니다.',
+    contentLikeCount: 21,
+    contentReplyCount: 3,
+    contentLikeYn: false,
+    contentBookmarkYn: false,
+    viewCount: 175,
+    regDt: '2026-09-09 13:45:00',
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 중원구',
+    contentDisplayRateDongName: '중앙동',
+    contentDisplayRateDongs: [
+      { dongName: '중앙동', percentage: 51 },
+      { dongName: '금광동', percentage: 29 },
+      { dongName: '단대동', percentage: 20 },
+    ],
+    latitude: 37.439,
+    longitude: 127.153,
+    address: '경기도 성남시 중원구 중앙동 12',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/106/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 107,
+      localboxName: '중원 나이트러너',
+      localboxProfileImgUrl: 'https://picsum.photos/id/342/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '중앙동',
+      localboxMyTownCodeValue: '4113310200',
+      localboxCreatorType: 'LOCALBOX_RESIDENT',
+    },
+  },
+  {
+    contentId: 7611,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '양지동 숲속 놀이터 목재 시설물 안전 점검 안내',
+    contentBodyText:
+      '아이들이 안전하게 뛰어놀 수 있도록 양지동 숲속 놀이터 미끄럼틀과 그네 보수 작업이 완료되었습니다.',
+    contentLikeCount: 16,
+    contentReplyCount: 2,
+    contentLikeYn: false,
+    contentBookmarkYn: false,
+    viewCount: 130,
+    regDt: '2026-09-05 16:00:00',
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 수정구',
+    contentDisplayRateDongName: '양지동',
+    contentDisplayRateDongs: [
+      { dongName: '양지동', percentage: 64 },
+      { dongName: '은행동', percentage: 21 },
+      { dongName: '금광동', percentage: 15 },
+    ],
+    latitude: 37.4592,
+    longitude: 127.163,
+    address: '경기도 성남시 수정구 양지동 45',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [],
+    localboxElementDto: {
+      localboxId: 106,
+      localboxName: '양지동 생활체육',
+      localboxProfileImgUrl: null,
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '양지동',
+      localboxMyTownCodeValue: '4113110700',
+      localboxCreatorType: 'LOCALBOX_RESIDENT',
+    },
+  },
+  {
+    contentId: 7610,
+    contentType: 'VILLAGE_NEWS',
+    contentTitle: '신흥동 골목 작은 세탁소의 35년 다림질 이야기',
+    contentBodyText:
+      '스팀 다리미 수증기 너머로 언제나 반갑게 인사를 건네주시는 신흥동 세탁소 사장님의 일상 기록입니다.',
+    contentLikeCount: 48,
+    contentReplyCount: 8,
+    contentLikeYn: false,
+    contentBookmarkYn: true,
+    viewCount: 360,
+    regDt: '2026-09-01 11:30:00',
+    isPinnedToTopGroup: false,
+    contentDisplayRateCityName: '경기 성남시 수정구',
+    contentDisplayRateDongName: '신흥동',
+    contentDisplayRateDongs: [
+      { dongName: '신흥동', percentage: 58 },
+      { dongName: '중앙동', percentage: 24 },
+      { dongName: '금광동', percentage: 18 },
+    ],
+    latitude: 37.435,
+    longitude: 127.166,
+    address: '경기도 성남시 수정구 신흥동 88',
+    contentHashTagElementDtos: [],
+    contentFileElementDtos: [
+      {
+        contentFileUrl: 'https://picsum.photos/id/366/800/600',
+        contentFileType: 'IMG_FILE',
+        displayOrder: 1,
+        width: 800,
+        height: 600,
+      },
+    ],
+    localboxElementDto: {
+      localboxId: 108,
+      localboxName: '수정구 미식수첩',
+      localboxProfileImgUrl: 'https://picsum.photos/id/201/100/100',
+      memberShipStatus: 'REGULAR',
+      localboxMyTownName: '신흥동',
+      localboxMyTownCodeValue: '4113110100',
+      localboxCreatorType: 'LOCALBOX_SHOP',
+    },
+  },
+];
